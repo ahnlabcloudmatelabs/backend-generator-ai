@@ -1,0 +1,26 @@
+p {
+  margin-bottom: 2rem !important;
+}
+
+ol {
+  padding-left: 40px !important;
+  margin-top: 2rem !important;
+  margin-bottom: 2rem !important;
+  list-style: decimal !important;
+}
+
+ul {
+  padding-left: 40px !important;
+  margin-top: 2rem !important;
+  margin-bottom: 2rem !important;
+  list-style: disc !important;
+}
+
+li {
+  margin-bottom: 0.5rem !important;
+}
+
+pre {
+  margin-bottom: 2rem !important;
+  text-wrap: wrap !important;
+}
