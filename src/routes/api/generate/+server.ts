@@ -60,7 +60,7 @@ Let's think step by step`
               return
             }
 
-            controller.enqueue('data: ' + value + '\n\n')
+            controller.enqueue(value)
             push()
           })
       }

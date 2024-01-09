@@ -97,12 +97,13 @@
 						if (done) {
 							return;
 						}
-						data += new TextDecoder('utf-8')
-							.decode(value)
-							.replace('data: ', '')
-							.replace('\n\n', '');
+						data += new TextDecoder('utf-8').decode(value);
 
 						generatedCode = await marked.parse(data);
+
+						if (document.body.scrollHeight - window.scrollY <= window.innerHeight + 100) {
+							window.scrollTo(0, document.body.scrollHeight);
+						}
 
 						return pump();
 					});
