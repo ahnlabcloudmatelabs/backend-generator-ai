@@ -23,18 +23,36 @@
 		}
 	);
 
-	let language = '';
-	let framework = '';
-	let etc = '';
-	let modelSchema = '';
+	let language = 'Go';
+	let framework = 'Fiber v2';
+	let etc = `- database:
+		- host: localhost
+		- port: 5432
+		- username: postgres
+		- password: 1234
+		- database: postgres`;
+	let modelSchema = `CREATE TABLE user (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR,
+    age INTEGER
+)`;
 	let loading = false;
 	let apis: API[] = [
 		{
-			method: 'ALL',
-			path: '',
-			requestExample: '',
-			responseExample: '',
-			description: ''
+			method: 'POST',
+			path: '/users/create',
+			requestExample: `{
+	"name": "John Doe",
+	"age": 20
+}`,
+			responseExample: `{
+	"data": {
+		"id": 1,
+		"name": "John Doe",
+		"age": 20
+	}
+}`,
+			description: 'Insert request data to `users` table'
 		}
 	];
 	let generatedCode = '';
@@ -56,6 +74,8 @@
 	async function onClickGenerate() {
 		loading = true;
 
+		let data = '';
+
 		await fetch('/api/generate', {
 			method: 'POST',
 			headers: {
@@ -69,10 +89,26 @@
 				apis
 			})
 		})
-			.then((res) => res.text())
-			.then((data) => marked.parse(data))
-			.then((html) => {
-				generatedCode = html;
+			.then((res) => {
+				const reader = res.body!.getReader();
+
+				function pump(): Promise<void> {
+					return reader.read().then(async ({ done, value }) => {
+						if (done) {
+							return;
+						}
+						data += new TextDecoder('utf-8')
+							.decode(value)
+							.replace('data: ', '')
+							.replace('\n\n', '');
+
+						generatedCode = await marked.parse(data);
+
+						return pump();
+					});
+				}
+
+				return pump();
 			})
 			.catch((err) => {
 				generatedError = err;
@@ -158,14 +194,10 @@
 					class="textarea"
 					rows="8"
 					bind:value={api.requestExample}
-					placeholder={JSON.stringify(
-						{
-							name: 'John Doe',
-							age: 20
-						},
-						null,
-						4
-					)}
+					placeholder={`{
+	"name": "John Doe",
+	"age": 20
+}`}
 				/>
 			</label>
 
@@ -175,17 +207,13 @@
 					class="textarea"
 					rows="8"
 					bind:value={api.responseExample}
-					placeholder={JSON.stringify(
-						{
-							data: {
-								id: 1,
-								name: 'John Doe',
-								age: 20
-							}
-						},
-						null,
-						4
-					)}
+					placeholder={`{
+	"data": {
+		"id": 1,
+		"name": "John Doe",
+		"age": 20
+	}
+}`}
 				/>
 			</label>
 

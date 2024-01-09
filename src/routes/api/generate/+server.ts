@@ -48,6 +48,34 @@ ${apis.map((api) => `- Path: ${api.path}
 Generate backend code from this document.
 Let's think step by step`
 
-  const result = await model.invoke(prompt)
-  return new Response(result)
+  const response = await model.stream(prompt)
+
+  const stream = new ReadableStream({
+    start (controller) {
+      function push() {
+        response.next()
+          .then(({value, done}) => {
+            if (done) {
+              controller.close()
+              return
+            }
+
+            controller.enqueue('data: ' + value + '\n\n')
+            push()
+          })
+      }
+
+      push()
+    },
+
+    cancel (reason) {
+      response.cancel(reason)
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream"
+    }
+  })
 }
